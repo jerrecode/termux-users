@@ -1,0 +1,11 @@
+# Shared shell integration for Termux User Manager virtual accounts.
+# Sourced only by virtual-user skeletons unless explicitly sourced elsewhere.
+if [[ $- == *i* ]] && [ "${TUSER_DIRENV:-1}" != 0 ] && command -v direnv >/dev/null 2>&1; then
+    eval "$(direnv hook bash)"
+fi
+if [[ $- == *i* ]] && [ -n "${TERMUX_VIRTUAL_USER:-}" ]; then
+    case "${PS1-}" in
+        *"[tuser:"*) ;;
+        *) PS1="[tuser:${TERMUX_VIRTUAL_USER}] ${PS1:-\$ }" ;;
+    esac
+fi
