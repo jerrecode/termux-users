@@ -1,0 +1,32 @@
+name: test-and-build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: ./tests/run-tests.sh
+
+      - name: Build Debian package
+        run: ./build-deb.sh
+
+      - name: Verify package checksum
+        run: sha256sum -c dist/termux-user-manager_0.2.0-2_all.deb.sha256
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-user-manager_0.2.0-2_all
+          path: |
+            dist/termux-user-manager_0.2.0-2_all.deb
+            dist/termux-user-manager_0.2.0-2_all.deb.sha256
