@@ -1,0 +1,10 @@
+# Shared zsh integration for Termux User Manager virtual accounts.
+if [[ -o interactive ]] && [[ "${TUSER_DIRENV:-1}" != 0 ]] && (( $+commands[direnv] )); then
+    eval "$(direnv hook zsh)"
+fi
+if [[ -o interactive ]] && [[ -n "${TERMUX_VIRTUAL_USER:-}" ]]; then
+    case "${PROMPT-}" in
+        *"[tuser:"*) ;;
+        *) PROMPT="[tuser:${TERMUX_VIRTUAL_USER}] ${PROMPT-}%# " ;;
+    esac
+fi
