@@ -1,0 +1,30 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -eu
+PKG=termux-user-manager
+P=/data/data/com.termux/files/usr
+# If dpkg already knows the package (installed or config-files), this is an upgrade/reinstall.
+if dpkg-query -W "$PKG" >/dev/null 2>&1; then
+    exit 0
+fi
+# First install: abort instead of overwriting unrelated pre-existing objects.
+for x in \
+    "$P/libexec/termux-user-manager/tuser.py" \
+    "$P/bin/tuser" "$P/bin/tuseradd" "$P/bin/tuserdel" "$P/bin/tusermod" \
+    "$P/bin/tusers" "$P/bin/tlogin" "$P/bin/tsu" "$P/bin/twhoami" \
+    "$P/bin/tpasswd" "$P/bin/tuserenv" "$P/bin/tuserdoctor" \
+    "$P/etc/termux-user-manager/config.json" \
+    "$P/share/termux-user-manager/shell/bashrc" \
+    "$P/share/termux-user-manager/shell/zshrc" \
+    "$P/share/termux-user-manager/shell/fish.fish" \
+    "$P/share/doc/termux-user-manager/README.md" \
+    "$P/share/doc/termux-user-manager/ARCHITECTURE.md" \
+    "$P/share/bash-completion/completions/tuser" \
+    "$P/share/man/man1/tuser.1.gz"
+do
+    if [ -e "$x" ] || [ -L "$x" ]; then
+        echo "termux-user-manager: refusing to overwrite pre-existing path: $x" >&2
+        echo "Move/rename that object and retry, or install through an upgrade of this package." >&2
+        exit 1
+    fi
+done
+exit 0
