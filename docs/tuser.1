@@ -1,0 +1,65 @@
+.TH TUSER 1 "September 2026" "termux-user-manager 0.2.0" "Termux User Manager"
+.SH NAME
+tuser \- virtual user/profile management for Termux
+.SH SYNOPSIS
+.B tuser
+COMMAND [OPTIONS]
+.SH DESCRIPTION
+Termux User Manager creates separate HOME, XDG and language/runtime environments
+inside Termux. Virtual users are profiles, not real kernel users: all sessions
+continue to use the Android/Linux UID of the Termux application.
+.PP
+The package does not modify the normal Termux HOME or global login scripts.
+Virtual homes are created only by an explicit tuser add command.
+.SH COMMANDS
+.TP
+.B tuser add NAME
+Create a virtual user and, by default, a Python virtual environment.
+.TP
+.B tuser list
+List virtual users.
+.TP
+.B tuser login NAME
+Enter a virtual user's login shell.
+.TP
+.B tuser modify NAME
+Modify account metadata, state, shell, groups or explicit environment variables.
+.TP
+.B tuser delete NAME
+Delete account metadata while preserving the home by default.
+.TP
+.B tuser passwd NAME
+Set an optional profile password. This is not a security boundary.
+.TP
+.B tuser env NAME
+Display the environment that tlogin will construct.
+.TP
+.B tuser runtime python ACTION NAME
+Create, enable, disable or explicitly remove the per-user default Python venv.
+.TP
+.B tuser proot-setup NAME DISTRO
+Create and remember a conventional guest-side account inside an installed proot-distro.
+.TP
+.B tuser proot NAME DISTRO
+Bind the virtual home into an installed proot-distro environment and use a remembered guest account mapping when present.
+.TP
+.B tuser doctor
+Check installation and account consistency.
+.SH FILES
+.TP
+.I $PREFIX/etc/termux-user-manager/config.json
+Package configuration.
+.TP
+.I $PREFIX/var/lib/termux-user-manager/users.json
+Mutable virtual account database.
+.TP
+.I $TERMUX__ROOTFS_DIR/users/
+Default virtual home root. On a standard com.termux installation this is normally /data/data/com.termux/files/users/.
+.SH SECURITY
+Virtual UID/GID values are metadata only. Filesystem access, processes and Android
+permissions are still governed by the single real UID used by Termux.
+.SH SEE ALSO
+.BR direnv (1),
+.BR bash (1),
+.BR python (1),
+.BR proot-distro (1)
