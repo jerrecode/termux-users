@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "default_shell": "/data/data/com.termux/files/usr/bin/bash",
+  "default_python_venv": true,
+  "enable_direnv": true,
+  "clean_environment": true,
+  "virtual_uid_start": 10000,
+  "preserve_environment": [
+    "TERM",
+    "COLORTERM",
+    "LANG",
+    "LANGUAGE",
+    "TZ",
+    "DISPLAY",
+    "WAYLAND_DISPLAY",
+    "PULSE_SERVER",
+    "DBUS_SESSION_BUS_ADDRESS",
+    "SSH_AUTH_SOCK",
+    "LD_PRELOAD",
+    "LD_LIBRARY_PATH"
+  ],
+  "preserve_environment_prefixes": [
+    "LC_",
+    "TERMUX_",
+    "ANDROID_"
+  ]
+}
