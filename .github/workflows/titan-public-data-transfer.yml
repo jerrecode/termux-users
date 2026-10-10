@@ -13,7 +13,7 @@ permissions:
 jobs:
   transfer:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
@@ -40,13 +40,21 @@ jobs:
           ls -lh sar/*.tif
           sha256sum sar/*.tif | tee sar/SHA256SUMS.txt
 
-      - name: Compute native-scale SAR descriptors and compact to atlas grid
+      - name: Configure 16-ppd evidence grid
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's/TW, TH = 1536, 768/TW, TH = 5760, 2880/' titan_sar_compact.py
+          sed -i 's/exact 30x30 area aggregation/exact 8x8 area aggregation/' titan_sar_compact.py
+          sed -i 's/area-aggregates to a 1536x768 grid/area-aggregates to a 5760x2880 grid/' titan_sar_compact.py
+
+      - name: Compute native-scale SAR descriptors and compact to 16-ppd grid
         run: python titan_sar_compact.py
 
-      - name: Upload compact real SAR products
+      - name: Upload 16-ppd compact real SAR products
         uses: actions/upload-artifact@v4
         with:
-          name: titan-sar-native-compact
+          name: titan-sar-native-compact-16ppd
           path: sar_compact/
           compression-level: 6
           retention-days: 1
