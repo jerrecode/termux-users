@@ -13,23 +13,50 @@ permissions:
 jobs:
   transfer:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
-      - name: Download Corlies Titan topography package
+      - name: Download and validate VIMS/ISS
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p sources
+          mkdir -p vims
           curl -L --fail --retry 5 --retry-delay 2 \
-            -o sources/titan_topo_corlies.zip \
-            https://data.astro.cornell.edu/titan_topo_corlies/titan_topo_corlies.zip
-          ls -lh sources/titan_topo_corlies.zip
-          sha256sum sources/titan_topo_corlies.zip | tee sources/SHA256SUMS.txt
-          unzip -t sources/titan_topo_corlies.zip
-      - name: Upload Corlies source artifact
+            -o vims/Titan_VIMS-ISS.tif \
+            https://data.caltech.edu/api/records/8q9an-yt176/files/Titan_VIMS-ISS.tif/content
+          test "$(stat -c%s vims/Titan_VIMS-ISS.tif)" = "144203625"
+          echo "42a94d36b9dbe6a63262c3a0cfeacc47  vims/Titan_VIMS-ISS.tif" | md5sum -c -
+          sha256sum vims/Titan_VIMS-ISS.tif | tee vims/SHA256SUMS.txt
+          ls -lh vims/Titan_VIMS-ISS.tif
+
+      - name: Upload VIMS/ISS source artifact
         uses: actions/upload-artifact@v4
         with:
-          name: titan-corlies-source
-          path: sources/
+          name: titan-vims-iss-source
+          path: vims/
+          compression-level: 0
+          retention-days: 1
+
+      - name: Download and validate GTDR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p gtdr
+          curl -L --fail --retry 5 --retry-delay 2 \
+            -o gtdr/gtdr-data.zip \
+            https://asc-astropedia.s3.us-west-2.amazonaws.com/Titan/Cassini/GTDR/gtdr-data.zip
+          test "$(stat -c%s gtdr/gtdr-data.zip)" = "268687930"
+          unzip -t gtdr/gtdr-data.zip
+          unzip -Z1 gtdr/gtdr-data.zip | awk -F/ '{print toupper($NF)}' > gtdr/files.txt
+          grep -q '^GTF' gtdr/files.txt
+          grep -q '^GTI' gtdr/files.txt
+          grep -q '^GTD' gtdr/files.txt
+          sha256sum gtdr/gtdr-data.zip | tee gtdr/SHA256SUMS.txt
+          ls -lh gtdr/gtdr-data.zip
+
+      - name: Upload GTDR source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: titan-gtdr-source
+          path: gtdr/
           compression-level: 0
           retention-days: 1
