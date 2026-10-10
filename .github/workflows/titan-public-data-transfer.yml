@@ -13,26 +13,40 @@ permissions:
 jobs:
   transfer:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
-      - name: Download and validate GTDR archive bytes
+      - uses: actions/checkout@v4
+
+      - name: Install compact SAR processing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy<3' 'scipy<2' 'rasterio<2'
+
+      - name: Download full native Titan SAR mosaic
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p gtdr
-          curl -L --fail --retry 5 --retry-delay 2 \
-            -o gtdr/gtdr-data.zip \
-            https://asc-astropedia.s3.us-west-2.amazonaws.com/Titan/Cassini/GTDR/gtdr-data.zip
-          test "$(stat -c%s gtdr/gtdr-data.zip)" = "268687930"
-          unzip -t gtdr/gtdr-data.zip
-          unzip -Z1 gtdr/gtdr-data.zip > gtdr/files.txt
-          sha256sum gtdr/gtdr-data.zip | tee gtdr/SHA256SUMS.txt
-          ls -lh gtdr/gtdr-data.zip
+          mkdir -p sar
+          curl -L --fail --retry 5 --retry-delay 3 \
+            -o sar/Titan_SAR_HiSAR_MosaicThru_T104_Jan2015_clon180_128ppd.tif \
+            https://planetarymaps.usgs.gov/mosaic/Titan_SAR_HiSAR_MosaicThru_T104_Jan2015_clon180_128ppd.tif
+          python - <<'PY'
+          import rasterio, json
+          p='sar/Titan_SAR_HiSAR_MosaicThru_T104_Jan2015_clon180_128ppd.tif'
+          with rasterio.open(p) as ds:
+              print(json.dumps({'width':ds.width,'height':ds.height,'count':ds.count,'dtypes':ds.dtypes,'crs':str(ds.crs),'bounds':list(ds.bounds),'nodata':ds.nodata},indent=2))
+              assert (ds.width,ds.height,ds.count)==(46080,23040,1)
+          PY
+          ls -lh sar/*.tif
+          sha256sum sar/*.tif | tee sar/SHA256SUMS.txt
 
-      - name: Upload raw GTDR source artifact
+      - name: Compute native-scale SAR descriptors and compact to atlas grid
+        run: python titan_sar_compact.py
+
+      - name: Upload compact real SAR products
         uses: actions/upload-artifact@v4
         with:
-          name: titan-gtdr-source
-          path: gtdr/
-          compression-level: 0
+          name: titan-sar-native-compact
+          path: sar_compact/
+          compression-level: 6
           retention-days: 1
